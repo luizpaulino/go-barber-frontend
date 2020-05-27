@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useState } from 'react';
+import React, { createContext, useCallback, useState, useContext } from 'react';
 import api from '../services/api';
 
 interface SignInCredentials {
@@ -16,7 +16,17 @@ interface AuthContextDTO {
   signIn(credentials: SignInCredentials): Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextDTO>({} as AuthContextDTO);
+const AuthContext = createContext<AuthContextDTO>({} as AuthContextDTO);
+
+export function useAuth(): AuthContextDTO {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+
+  return context;
+}
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthSate>(() => {
