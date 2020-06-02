@@ -6,7 +6,7 @@ interface SignInCredentials {
   password: string;
 }
 
-interface AuthSate {
+interface AuthState {
   token: string;
   user: object;
 }
@@ -14,6 +14,7 @@ interface AuthSate {
 interface AuthContextDTO {
   user: object;
   signIn(credentials: SignInCredentials): Promise<void>;
+  signOut(): void;
 }
 
 const AuthContext = createContext<AuthContextDTO>({} as AuthContextDTO);
@@ -29,14 +30,14 @@ export function useAuth(): AuthContextDTO {
 }
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [data, setData] = useState<AuthSate>(() => {
+  const [data, setData] = useState<AuthState>(() => {
     const token = localStorage.getItem('@GoBarber:token');
     const user = localStorage.getItem('@GoBarber:user');
 
     if (token && user) {
       return { token, user: JSON.parse(user) };
     }
-    return {} as AuthSate;
+    return {} as AuthState;
   });
 
   const signIn = useCallback(async ({ email, password }) => {
@@ -53,8 +54,15 @@ export const AuthProvider: React.FC = ({ children }) => {
     setData({ token, user });
   }, []);
 
+  const signOut = useCallback(() => {
+    localStorage.removeItem('@GoBarber:token');
+    localStorage.removeItem('@GoBarber:user');
+
+    setData({} as AuthState);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user: data.user, signIn }}>
+    <AuthContext.Provider value={{ user: data.user, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
